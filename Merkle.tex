@@ -1,0 +1,86 @@
+\section{Merkle-Based Post-Quantum OT: Mathematical Framework}
+\subsection{Key Definitions}
+\textbf{Security Parameters:}
+\begin{itemize}
+    \item $n$: Number of secrets held by the Sender.
+    \item $k$: Security parameter (e.g., the bit-length of hashes and salts).
+\end{itemize}
+
+\textbf{Merkle Tree:}
+\begin{itemize}
+    \item \textbf{Leaves:} $L = \{ H_k(m_1), H_k(m_2), \dots, H_k(m_n) \}$, where $H_k(x)$ is a quantum-safe hash function (e.g., SHA-3), and $m_i$ are the secrets.
+    \item \textbf{Tree Construction:} Internal nodes are defined as $H_k(L_i \parallel L_j)$, where $L_i, L_j$ are sibling nodes, and $\parallel$ denotes concatenation.
+    \item \textbf{Root:} The root $R$ is the top-most hash of the tree, uniquely identifying the set of secrets.
+\end{itemize}
+
+\textbf{Merkle Proof:}
+\begin{itemize}
+    \item A proof $P_i$ for leaf $i$ is a sequence of hashes that reconstructs $R$ when combined with $H_k(m_i)$.
+\end{itemize}
+
+\subsection{Protocol Phases}
+\textbf{Phase 1: Setup by Sender}
+
+\textbf{Input:}
+\begin{itemize}
+    \item $M = \{ m_1, m_2, \dots, m_n \}$: The secrets.
+    \item $H_k$: A quantum-safe hash function.
+\end{itemize}
+
+\textbf{Output:}
+\begin{itemize}
+    \item $R$: The root of the Merkle tree.
+    \item $P_i$: The Merkle proof for each $i \in \{ 1, 2, \dots, n \}$.
+\end{itemize}
+
+\textbf{Procedure:}
+\begin{itemize}
+    \item Compute $H_k(m_i)$ for each secret $m_i$.
+    \item Construct a Merkle tree from $\{ H_k(m_1), \dots, H_k(m_n) \}$.
+    \item Share $R$ with the Receiver.
+\end{itemize}
+
+\textbf{Phase 2: Oblivious Transfer}
+
+\textbf{Receiver’s Selection:}
+\begin{itemize}
+    \item $i$: The index of the desired secret.
+    \item Generate a query mask $Q$ such that $Q(i)$ is indistinguishable from random noise.
+\end{itemize}
+
+\textbf{Sender’s Response:}
+\begin{itemize}
+    \item Compute $P_i$: The Merkle proof for the $i$-th leaf.
+    \item Return $\{ H_k(m_i), P_i \}$.
+\end{itemize}
+
+\textbf{Verification by Receiver:}
+\begin{itemize}
+    \item Verify the Merkle proof: $R = \text{Reconstruct}(H_k(m_i), P_i)$.
+    \item If valid, extract $m_i$ using additional context (e.g., decoding the hash).
+\end{itemize}
+
+\subsection{Properties}
+\textbf{Correctness:}
+\begin{itemize}
+    \item If the Receiver follows the protocol, they will retrieve $m_i$ such that:
+    \[
+        H_k(m_i) \text{ is valid under } P_i \implies R.
+    \]
+\end{itemize}
+
+\textbf{Privacy:}
+\begin{itemize}
+    \item The Sender cannot determine $i$ due to the masking of the query $Q(i)$.
+\end{itemize}
+
+\textbf{Quantum Resistance:}
+\begin{itemize}
+    \item The security relies on the hardness of inverting $H_k$, a quantum-safe hash function.
+\end{itemize}
+
+\subsection{Optional Extensions}
+\begin{itemize}
+    \item \textbf{Add Salting for $H_k(m_i)$:} $H_k(m_i \parallel s_i)$, where $s_i$ is a unique salt per secret to prevent replay attacks.
+    \item \textbf{Use Adaptive Masking for $Q(i)$:} Ensuring it resists statistical attacks.
+\end{itemize}
